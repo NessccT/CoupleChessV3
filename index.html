@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>情侶飛行棋</title>
+  <title>情侶飛行棋 - 50格雙愛心雲端版</title>
 
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="情侶飛行棋">
-
-  <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#fcd5e5">
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
   <style>
     * {
@@ -31,24 +31,44 @@
       overflow-x: hidden;
     }
 
-    /* 頂部資訊列 */
+    /* 頂部資訊列與模式切換 */
     .top-bar {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
       margin-bottom: 12px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     #game-info {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
       color: #e63946;
-      background: rgba(255, 255, 255, 0.75);
-      padding: 6px 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 6px 18px;
       border-radius: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .mode-badge {
+      background: #ffffff;
+      border: 2px solid #54a0ff;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #2e86de;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+    .mode-badge.public {
+      background: #2e86de;
+      color: #ffffff;
     }
 
     /* 棋盤舞台與緊貼按鈕 */
@@ -165,12 +185,7 @@
       transform: none !important;
     }
 
-    button#rollBtn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 7px 20px rgba(255, 117, 140, 0.6);
-    }
-
-    /* 彈窗遮罩與外觀 */
+    /* 彈窗樣式 */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -288,7 +303,7 @@
     }
 
     .edit-modal-header {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 900;
       color: #333;
       margin-bottom: 12px;
@@ -358,15 +373,13 @@
     .cancel-btn {
       background: #bbb;
     }
-    .cancel-btn:hover {
-      background: #999;
-    }
   </style>
 </head>
 <body>
 
   <div class="top-bar">
     <div id="game-info">💖 紅方回合</div>
+    <div class="mode-badge public" id="modeBtn" onclick="toggleMode()">🌐 公用雲端版 (已連線)</div>
   </div>
 
   <div class="game-stage">
@@ -402,50 +415,67 @@
 
   <div class="modal-overlay" id="editModalOverlay">
     <div class="edit-modal" id="editModalBox">
-      <div class="edit-modal-header" id="editModalTitle">編輯任務清單 (1~50格)</div>
+      <div class="edit-modal-header" id="editModalTitle">編輯任務清單</div>
       <div class="edit-list" id="editListContainer"></div>
       <div class="edit-modal-footer">
         <button class="modal-btn cancel-btn" onclick="closeEditorModal()">取消</button>
-        <button class="modal-btn" onclick="saveTasksFromEditor()">儲存任務 💾</button>
+        <button class="modal-btn" onclick="saveTasksFromEditor()">儲存並同步 💾</button>
       </div>
     </div>
   </div>
 
   <script>
     // ==========================================
-    // 🔔 Web Audio API 合成短「叮」音效
+    // ☁️ 1. 你的 Firebase 專屬設定 (已自動填入)
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAyfbvi0HCbNF95384gf3qLn1_CazaD3XM",
+      authDomain: "couple-chessv3.firebaseapp.com",
+      databaseURL: "https://couple-chessv3-default-rtdb.firebaseio.com",
+      projectId: "couple-chessv3",
+      storageBucket: "couple-chessv3.firebasestorage.app",
+      messagingSenderId: "395827553176",
+      appId: "1:395827553176:web:d7c0676494cd5671d241ed",
+      measurementId: "G-6SCDS8KFYZ"
+    };
+
+    let isFirebaseReady = false;
+    let dbRef = null;
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+      dbRef = firebase.database().ref('shared_ludo_tasks');
+      isFirebaseReady = true;
+    } catch (e) {
+      console.warn("Firebase 初始化錯誤", e);
+    }
+
+    let isCloudMode = true;
+
+    // ==========================================
+    // 🔔 2. Web Audio API 音效
     // ==========================================
     let audioCtx = null;
     function playDingSound() {
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
         osc.type = 'sine';
         osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
-
         gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
-
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-
         osc.start();
         osc.stop(audioCtx.currentTime + 0.8);
-      } catch (e) {
-        console.warn("音訊受限", e);
-      }
+      } catch (e) {}
     }
 
     // ==========================================
-    // 🎯 預設任務清單 (完整 1~50 格) 備忘錄:塞肛塞、
+    // 🎯 3. 預設 50 格任務資料
     // ==========================================
     const defaultTasks = {
       1:  { title: "耳畔喘息", desc: "吹對方耳朵並舔兩下。", duration: 0 },
@@ -453,22 +483,22 @@
       3:  { title: "初熟",   desc: "舌頭交纏20秒。", duration: 20 },
       4:  { title: "放學私會",   desc: "輕撫對方胸部並向下到摸到私密處20秒", duration: 20 },
       5:  { title: "愛意",   desc: "捏對方奶頭20秒。", duration: 20 },
-      6:  { title: "春心",   desc: "摸對方雞雞/揉痘痘 輕撫20秒。", duration: 20 },
-      7:  { title: "甜蜜抱抱", desc: "抱抱並互相摸對方私密處１分鐘。", duration: 60 },
-      8:  { title: "欲拒還迎", desc: "女生拉男生手去輕壓痘痘30秒。", duration: 30 },
+      6:  { title: "春心",   desc: "摸對方私密處 輕撫20秒。", duration: 20 },
+      7:  { title: "甜蜜抱抱", desc: "抱抱的時候互相摸對方私密處１分鐘。", duration: 60 },
+      8:  { title: "欲拒還迎", desc: "女生拉男生手去輕壓私密處30秒。", duration: 30 },
       9:  { title: "大冒險",   desc: "接吻1分鐘。", duration: 60 },
-      10: { title: "絕對領域",   desc: "背對男生把女生褲子脫下來露出騷B。", duration: 0 },
-      11: { title: "雄雞昂首", desc: "把男生褲子脫下來 女生用親吻龜頭。", duration: 0 },
-      12: { title: "波濤洶湧", desc: "把女生衣服脫下來 並捏轉一下奶頭", duration: 0 },
-      13: { title: "藍色賀爾蒙", desc: "把男生衣服脫下來 並捏轉一下奶頭。", duration: 0 },
+      10: { title: "絕對領域",   desc: "把女生褲子脫下來。", duration: 0 },
+      11: { title: "雄雞昂首", desc: "把男生褲子脫下來。", duration: 0 },
+      12: { title: "波濤洶湧", desc: "把女生衣服脫下來", duration: 0 },
+      13: { title: "藍色賀爾蒙",   desc: "把男生衣服脫下來。", duration: 0 },
       14: { title: "窒息抽插", desc: "躺著倒反口交1分鐘。", duration: 60 },
-      15: { title: "騷貨誘惑", desc: "隨意玩弄騷穴1分鐘", duration: 60 },
+      15: { title: "騷貨誘惑", desc: "隨意玩弄私密處1分鐘", duration: 60 },
       16: { title: "莫比烏斯", desc: "69姿勢2分鐘", duration: 120 },
-      17: { title: "愛液", desc: "幫對方含住蛋蛋或陰蒂20秒 舌頭打轉。", duration: 20 },
+      17: { title: "愛液", desc: "幫對方含住私密處20秒 舌頭打轉。", duration: 20 },
       18: { title: "偷情", desc: "閉上眼睛任對方舔1分鐘。", duration: 60 },
       19: { title: "蜜桃窒息", desc: "女生坐到男生臉上給人家舔1分鐘。", duration: 60 },
-      20: { title: "許願池", desc: "去廁所拍騷照drop給對方", duration: 0 },
-      21: { title: "淫水",   desc: "用內褲抵住按摩棒1分鐘 手不能碰 ", duration: 60 },
+      20: { title: "許願池", desc: "拍張性感照傳給對方", duration: 0 },
+      21: { title: "淫水",   desc: "用內褲抵住按摩棒1分鐘 手不能碰", duration: 60 },
       22: { title: "高潮淪陷",   desc: "手淫對方1分鐘", duration: 60 },
       23: { title: "愛撫", desc: "幫男生撸並舔奶頭30秒", duration: 30 },
       24: { title: "貪求",   desc: "幫男生撸到射精邊緣。", duration: 0 },
@@ -476,7 +506,7 @@
       26: { title: "越界", desc: "深喉嚨口交10次。", duration: 0 },
       27: { title: "愛的告白", desc: "猛烈口交30秒 忍住沒射獎勵內射。", duration: 30 },
       28: { title: "忍得住嗎", desc: "幫男生撸1分鐘。", duration: 60 },
-      29: { title: "騷鮑欠舔", desc: "幫女生舔鮑魚1分鐘。", duration: 60 },
+      29: { title: "騷鮑欠舔", desc: "幫女生舔私密處1分鐘。", duration: 60 },
       30: { title: "淪陷愛意",   desc: "按摩G點30秒。", duration: 30 },
       31: { title: "安全區",   desc: "女生躺著男上口交2分鐘", duration: 120 },
       32: { title: "甜蜜暴擊", desc: "幫男生尻+舔3分鐘", duration: 180 },
@@ -485,9 +515,9 @@
       35: { title: "秘密契約", desc: "舔男生睪丸+捏奶頭1分鐘。", duration: 60 },
       36: { title: "背德", desc: "從後面捏男生奶頭+尻槍1分鐘", duration: 60 },
       37: { title: "淪陷臣服", desc: "捏女生奶頭壓頭口交1分鐘", duration: 60 },
-      38: { title: "愛的承諾", desc: "捏女生奶頭舔鮑魚1分鐘。", duration: 60 },
+      38: { title: "愛的承諾", desc: "捏女生奶頭舔私密處1分鐘。", duration: 60 },
       39: { title: "欲求不滿",   desc: "在陰道口摩擦10下。", duration: 0 },
-      40: { title: "M 調教", desc: "男生跪姿女生從跨下幫男生尻槍1分鐘。", duration: 60 },
+      40: { title: "情慾流動", desc: "69姿勢2分鐘。", duration: 120 },
       41: { title: "決勝局", desc: "床上後入2分鐘(女生動)", duration: 120 },
       42: { title: "高潮前哨", desc: "背面騎乘位2分鐘。", duration: 120 },
       43: { title: "浪漫加溫", desc: "騎乘位2分鐘", duration: 120 },
@@ -497,13 +527,44 @@
       47: { title: "甜蜜密碼", desc: "床上後入2分鐘(男生動)。", duration: 120 },
       48: { title: "極致抽搐", desc: "女抖 M 後入3分鐘", duration: 180 },
       49: { title: "上位指導", desc: "騎乘位2分鐘。", duration: 120 },
-      50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精 ", duration: 300 }
+      50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精", duration: 300 }
     };
 
-    let tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
+    let tileTasks = defaultTasks;
+
+    // 監聽 Firebase 雲端更新
+    if (isFirebaseReady) {
+      dbRef.on('value', (snapshot) => {
+        const cloudData = snapshot.val();
+        if (cloudData && isCloudMode) {
+          tileTasks = cloudData;
+        } else if (!cloudData) {
+          // 若雲端為空，自動上傳預設任務
+          dbRef.set(defaultTasks);
+        }
+      });
+    }
+
+    function toggleMode() {
+      isCloudMode = !isCloudMode;
+      const btn = document.getElementById('modeBtn');
+      if (isCloudMode) {
+        btn.innerText = "🌐 公用雲端版 (已連線)";
+        btn.classList.add('public');
+        if (isFirebaseReady) {
+          dbRef.once('value').then(snap => {
+            if (snap.val()) tileTasks = snap.val();
+          });
+        }
+      } else {
+        btn.innerText = "📱 本地私密版";
+        btn.classList.remove('public');
+        tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
+      }
+    }
 
     // ==========================================
-    // 📝 任務編輯視窗邏輯
+    // 📝 4. 編輯與同步邏輯
     // ==========================================
     const editModalOverlay = document.getElementById('editModalOverlay');
     const editModalTitle = document.getElementById('editModalTitle');
@@ -567,12 +628,19 @@
       }
 
       localStorage.setItem('couple_ludo_tasks_50', JSON.stringify(tileTasks));
-      alert("✅ 50 格任務已成功儲存！");
+
+      if (isFirebaseReady && isCloudMode) {
+        dbRef.set(tileTasks);
+        alert("✅ 已成功儲存並同步至雲端公用版本！");
+      } else {
+        alert("✅ 已成功儲存至本機！");
+      }
+
       closeEditorModal();
     }
 
     // ==========================================
-    // ⏱️ 任務計時器邏輯
+    // ⏱️ 5. 倒數計時邏輯
     // ==========================================
     let autoTimerInterval = null;
     const modalTimerBadge = document.getElementById('modalTimerBadge');
@@ -595,7 +663,6 @@
           modalTimerBadge.innerText = `⏳ 準備倒數: ${prepCount}s`;
         } else {
           clearInterval(autoTimerInterval);
-          
           let remainTime = taskDuration;
           modalTimerBadge.innerText = `🔥 進行中: ${remainTime}s`;
 
@@ -618,7 +685,7 @@
     }
 
     // ==========================================
-    // 💖 50 格雙愛心精準幾何排列 (無重疊)
+    // 💖 6. 50 格雙愛心棋盤幾何與動畫
     // ==========================================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -638,76 +705,29 @@
       { bg: '#85befa', border: '#2d3b48', shadow: '#599cdb' }
     ];
 
-    // 重新佈局 50 格不重疊座標 (畫布 560 x 580)
     const heartCoords = [
-      // === 1. 外圈大愛心 (1 ~ 28 格) ===
-      { x: 280, y: 110, type: 'start' }, // 1 (起點 ◀◀)
-      { x: 326, y: 72 },   // 2
-      { x: 376, y: 50 },   // 3
-      { x: 428, y: 52 },   // 4
-      { x: 476, y: 80 },   // 5
-      { x: 508, y: 126 },  // 6 (右上弧頂)
-      { x: 518, y: 178 },  // 7
-      { x: 510, y: 232 },  // 8
-      { x: 486, y: 284 },  // 9
-      { x: 452, y: 334 },  // 10
-      { x: 412, y: 380 },  // 11
-      { x: 370, y: 422 },  // 12
-      { x: 326, y: 462 },  // 13
-      { x: 280, y: 518 },  // 14 (大愛心底端尖點)
-      { x: 234, y: 462 },  // 15
-      { x: 190, y: 422 },  // 16
-      { x: 148, y: 380 },  // 17
-      { x: 108, y: 334 },  // 18
-      { x: 74,  y: 284 },  // 19
-      { x: 50,  y: 232 },  // 20
-      { x: 42,  y: 178 },  // 21
-      { x: 52,  y: 126 },  // 22 (左上弧頂)
-      { x: 84,  y: 80 },   // 23
-      { x: 132, y: 52 },   // 24
-      { x: 184, y: 50 },   // 25
-      { x: 234, y: 72 },   // 26
-      { x: 254, y: 128 },  // 27
-      { x: 280, y: 156 },  // 28
-
-      // === 2. 過渡引導 (29 ~ 30 格) ===
-      { x: 322, y: 142 },  // 29
-      { x: 360, y: 140 },  // 30
-
-      // === 3. 內圈小愛心 (31 ~ 49 格) ===
-      { x: 400, y: 162 },  // 31 (小愛心右弧頂)
-      { x: 424, y: 202 },  // 32
-      { x: 426, y: 248 },  // 33
-      { x: 408, y: 290 },  // 34
-      { x: 378, y: 330 },  // 35
-      { x: 344, y: 366 },  // 36
-      { x: 308, y: 398 },  // 37
-      { x: 280, y: 432 },  // 38 (小愛心底端尖點)
-      { x: 252, y: 398 },  // 39
-      { x: 216, y: 366 },  // 40
-      { x: 182, y: 330 },  // 41
-      { x: 152, y: 290 },  // 42
-      { x: 134, y: 248 },  // 43
-      { x: 136, y: 202 },  // 44
-      { x: 160, y: 162 },  // 45 (小愛心左弧頂)
-      { x: 200, y: 140 },  // 46
-      { x: 238, y: 142 },  // 47
-      { x: 280, y: 198 },  // 48 (小愛心上方內凹處)
-      { x: 280, y: 242 },  // 49
-
-      // === 4. 正中心終點 (第 50 格) ===
-      { x: 280, y: 292, type: 'end' } // 50 (愛心正中心終點 ⚑)
+      { x: 280, y: 110, type: 'start' }, { x: 326, y: 72 }, { x: 376, y: 50 }, { x: 428, y: 52 },
+      { x: 476, y: 80 }, { x: 508, y: 126 }, { x: 518, y: 178 }, { x: 510, y: 232 },
+      { x: 486, y: 284 }, { x: 452, y: 334 }, { x: 412, y: 380 }, { x: 370, y: 422 },
+      { x: 326, y: 462 }, { x: 280, y: 518 }, { x: 234, y: 462 }, { x: 190, y: 422 },
+      { x: 148, y: 380 }, { x: 108, y: 334 }, { x: 74,  y: 284 }, { x: 50,  y: 232 },
+      { x: 42,  y: 178 }, { x: 52,  y: 126 }, { x: 84,  y: 80 }, { x: 132, y: 52 },
+      { x: 184, y: 50 }, { x: 234, y: 72 }, { x: 254, y: 128 }, { x: 280, y: 156 },
+      { x: 322, y: 142 }, { x: 360, y: 140 }, { x: 400, y: 162 }, { x: 424, y: 202 },
+      { x: 426, y: 248 }, { x: 408, y: 290 }, { x: 378, y: 330 }, { x: 344, y: 366 },
+      { x: 308, y: 398 }, { x: 280, y: 432 }, { x: 252, y: 398 }, { x: 216, y: 366 },
+      { x: 182, y: 330 }, { x: 152, y: 290 }, { x: 134, y: 248 }, { x: 136, y: 202 },
+      { x: 160, y: 162 }, { x: 200, y: 140 }, { x: 238, y: 142 }, { x: 280, y: 198 },
+      { x: 280, y: 242 }, { x: 280, y: 292, type: 'end' }
     ];
 
-    const track = heartCoords.map((coord, idx) => {
-      return {
-        num: idx + 1,
-        x: coord.x,
-        y: coord.y,
-        type: coord.type || 'normal',
-        theme: TILE_THEMES[idx % 4]
-      };
-    });
+    const track = heartCoords.map((coord, idx) => ({
+      num: idx + 1,
+      x: coord.x,
+      y: coord.y,
+      type: coord.type || 'normal',
+      theme: TILE_THEMES[idx % 4]
+    }));
 
     const players = [
       { name: "紅方", color: "#ff4757", pos: 0, renderX: track[0].x, renderY: track[0].y },
@@ -743,9 +763,8 @@
 
     function drawBoard() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const size = 36; // 50 格舒適尺寸
+      const size = 36;
 
-      // 繪製棋盤格子
       track.forEach((tile) => {
         const x = tile.x - size / 2;
         const y = tile.y - size / 2;
@@ -785,11 +804,8 @@
         }
       });
 
-      // 繪製玩家棋子
       players.forEach((p, idx) => {
-        let offset = (players[0].pos === players[1].pos && !isAnimating) 
-                     ? (idx === 0 ? -7 : 7) : 0;
-
+        let offset = (players[0].pos === players[1].pos && !isAnimating) ? (idx === 0 ? -7 : 7) : 0;
         ctx.save();
         ctx.beginPath();
         ctx.arc(p.renderX + offset, p.renderY + offset, 10, 0, Math.PI * 2);
@@ -855,29 +871,18 @@
     }
 
     const dicePatterns = {
-      1: [4],
-      2: [2, 6],
-      3: [2, 4, 6],
-      4: [0, 2, 6, 8],
-      5: [0, 2, 4, 6, 8],
-      6: [0, 2, 3, 5, 6, 8]
+      1: [4], 2: [2, 6], 3: [2, 4, 6],
+      4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8]
     };
 
     function updateDiceFace(val) {
-      for (let i = 0; i < 9; i++) {
-        document.getElementById(`d${i}`).style.visibility = 'hidden';
-      }
-      dicePatterns[val].forEach(idx => {
-        document.getElementById(`d${idx}`).style.visibility = 'visible';
-      });
+      for (let i = 0; i < 9; i++) document.getElementById(`d${i}`).style.visibility = 'hidden';
+      dicePatterns[val].forEach(idx => document.getElementById(`d${idx}`).style.visibility = 'visible';);
     }
 
     function rollDice() {
       if (isAnimating) return;
-
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
       isAnimating = true;
       rollBtn.disabled = true;
@@ -892,11 +897,9 @@
         if (rollCount >= 10) {
           clearInterval(rollInterval);
           diceEl.classList.remove('rolling');
-
           const finalDice = Math.floor(Math.random() * 6) + 1;
           updateDiceFace(finalDice);
           lastRolledDice = finalDice;
-
           processTurn(finalDice);
         }
       }, 60);
@@ -905,18 +908,12 @@
     function processTurn(dice) {
       const player = players[currentTurn];
       const maxIdx = track.length - 1;
-      
       const targetPos = Math.min(player.pos + dice, maxIdx);
       const waypoints = [];
-      for (let p = player.pos + 1; p <= targetPos; p++) {
-        waypoints.push(p);
-      }
+      for (let p = player.pos + 1; p <= targetPos; p++) waypoints.push(p);
 
       player.pos = targetPos;
-
-      animateMovement(player, waypoints, () => {
-        showTaskModal(player, player.pos);
-      });
+      animateMovement(player, waypoints, () => showTaskModal(player, player.pos));
     }
 
     function showTaskModal(player, posIdx) {
@@ -929,7 +926,6 @@
       modalDesc.innerText = task.desc;
 
       modalOverlay.classList.add('active');
-
       startAutoTaskTimer(task.duration);
     }
 
@@ -956,7 +952,6 @@
       rollBtn.disabled = false;
     }
 
-    // 初始化
     updateDiceFace(1);
     drawBoard();
   </script>
