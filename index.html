@@ -1032,8 +1032,8 @@
         if (inputPwd === null) return; // 點擊取消
 
         const inputHash = await sha256(inputPwd.trim());
-        // 5269 的 SHA-256 雜湊指紋（原始碼中不包含明文 5269）
-        const correctHash = "752c00fae0078eb13e0078864a75369bbcbff8a5be7156942ad32057d2a58b09";
+       
+        const correctHash = "780826da93c6f663f73ee5ba68c5b16f3ea83389d375373da30a7d9047d956bb";
 
         if (inputHash !== correctHash) {
           alert("❌ 密碼錯誤！您沒有權限重設雲端公用版本。");
