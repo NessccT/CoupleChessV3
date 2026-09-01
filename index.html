@@ -530,14 +530,15 @@
     let tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
 
 
-    // 監聽 Firebase 雲端更新
+    // 監聽 Firebase 雲端更新，並在載入時推送最新設定
     if (isFirebaseReady) {
+      dbRef.set(defaultTasks); // 👈 關鍵：強制用最新 defaultTasks 覆蓋掉雲端的舊資料
+      tileTasks = defaultTasks;
+
       dbRef.on('value', (snapshot) => {
         const cloudData = snapshot.val();
         if (cloudData && isCloudMode) {
           tileTasks = cloudData;
-        } else if (!cloudData) {
-          dbRef.set(defaultTasks);
         }
       });
     }
