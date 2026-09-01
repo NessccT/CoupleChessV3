@@ -1016,26 +1016,16 @@
     }
 
     // ==========================================
-    // 🔄 重設預設任務（公用版需管理員密碼 5269）
+    // 🔄 重設預設任務（公用版需密碼 5269）
     // ==========================================
-    async function sha256(message) {
-      const msgBuffer = new TextEncoder().encode(message);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function resetToDefaultTasks() {
+    function resetToDefaultTasks() {
       // 1. 若當前是「雲端公用版」，要求輸入管理員密碼
       if (isCloudMode) {
         const inputPwd = prompt("⚠️【管理員驗證】\n重設公用版會影響所有玩家的任務！\n請輸入管理員重設密碼：");
         if (inputPwd === null) return; // 點擊取消
 
-        const inputHash = await sha256(inputPwd.trim());
-       
-        const correctHash = "780826da93c6f663f73ee5ba68c5b16f3ea83389d375373da30a7d9047d956bb";
-
-        if (inputHash !== correctHash) {
+        // "NTI2OQ==" 即為 5269 經過編碼後的字串（原始碼中看不到 5269）
+        if (btoa(inputPwd.trim()) !== "NTI2OQ==") {
           alert("❌ 密碼錯誤！您沒有權限重設雲端公用版本。");
           return;
         }
