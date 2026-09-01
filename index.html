@@ -474,31 +474,28 @@
       } catch (e) {}
     }
 
-    // ==========================================
-    // 🎯 3. 預設 50 格任務資料
-    // ==========================================
-    const defaultTasks = {
+ const defaultTasks = {
       1:  { title: "耳畔喘息", desc: "吹對方耳朵並舔兩下。", duration: 0 },
       2:  { title: "意亂情迷",   desc: "接吻1分鐘。", duration: 60 },
       3:  { title: "初熟",   desc: "舌頭交纏20秒。", duration: 20 },
       4:  { title: "放學私會",   desc: "輕撫對方胸部並向下到摸到私密處20秒", duration: 20 },
       5:  { title: "愛意",   desc: "捏對方奶頭20秒。", duration: 20 },
-      6:  { title: "春心",   desc: "摸對方私密處 輕撫20秒。", duration: 20 },
-      7:  { title: "甜蜜抱抱", desc: "抱抱的時候互相摸對方私密處１分鐘。", duration: 60 },
-      8:  { title: "欲拒還迎", desc: "女生拉男生手去輕壓私密處30秒。", duration: 30 },
+      6:  { title: "春心",   desc: "摸對方雞雞/揉痘痘 輕撫20秒。", duration: 20 },
+      7:  { title: "甜蜜抱抱", desc: "抱抱並互相摸對方私密處１分鐘。", duration: 60 },
+      8:  { title: "欲拒還迎", desc: "女生拉男生手去輕壓痘痘30秒。", duration: 30 },
       9:  { title: "大冒險",   desc: "接吻1分鐘。", duration: 60 },
-      10: { title: "絕對領域",   desc: "把女生褲子脫下來。", duration: 0 },
-      11: { title: "雄雞昂首", desc: "把男生褲子脫下來。", duration: 0 },
-      12: { title: "波濤洶湧", desc: "把女生衣服脫下來", duration: 0 },
-      13: { title: "藍色賀爾蒙",   desc: "把男生衣服脫下來。", duration: 0 },
+      10: { title: "絕對領域",   desc: "背對男生把女生褲子脫下來露出騷B。", duration: 0 },
+      11: { title: "雄雞昂首", desc: "把男生褲子脫下來 女生用親吻龜頭。", duration: 0 },
+      12: { title: "波濤洶湧", desc: "把女生衣服脫下來 並捏轉一下奶頭", duration: 0 },
+      13: { title: "藍色賀爾蒙", desc: "把男生衣服脫下來 並捏轉一下奶頭。", duration: 0 },
       14: { title: "窒息抽插", desc: "躺著倒反口交1分鐘。", duration: 60 },
-      15: { title: "騷貨誘惑", desc: "隨意玩弄私密處1分鐘", duration: 60 },
+      15: { title: "騷貨誘惑", desc: "隨意玩弄騷穴1分鐘", duration: 60 },
       16: { title: "莫比烏斯", desc: "69姿勢2分鐘", duration: 120 },
-      17: { title: "愛液", desc: "幫對方含住私密處20秒 舌頭打轉。", duration: 20 },
+      17: { title: "愛液", desc: "幫對方含住蛋蛋或陰蒂20秒 舌頭打轉。", duration: 20 },
       18: { title: "偷情", desc: "閉上眼睛任對方舔1分鐘。", duration: 60 },
       19: { title: "蜜桃窒息", desc: "女生坐到男生臉上給人家舔1分鐘。", duration: 60 },
-      20: { title: "許願池", desc: "拍張性感照傳給對方", duration: 0 },
-      21: { title: "淫水",   desc: "用內褲抵住按摩棒1分鐘 手不能碰", duration: 60 },
+      20: { title: "許願池", desc: "去廁所拍騷照drop給對方", duration: 0 },
+      21: { title: "淫水",   desc: "用內褲抵住按摩棒1分鐘 手不能碰 ", duration: 60 },
       22: { title: "高潮淪陷",   desc: "手淫對方1分鐘", duration: 60 },
       23: { title: "愛撫", desc: "幫男生撸並舔奶頭30秒", duration: 30 },
       24: { title: "貪求",   desc: "幫男生撸到射精邊緣。", duration: 0 },
@@ -506,7 +503,7 @@
       26: { title: "越界", desc: "深喉嚨口交10次。", duration: 0 },
       27: { title: "愛的告白", desc: "猛烈口交30秒 忍住沒射獎勵內射。", duration: 30 },
       28: { title: "忍得住嗎", desc: "幫男生撸1分鐘。", duration: 60 },
-      29: { title: "騷鮑欠舔", desc: "幫女生舔私密處1分鐘。", duration: 60 },
+      29: { title: "騷鮑欠舔", desc: "幫女生舔鮑魚1分鐘。", duration: 60 },
       30: { title: "淪陷愛意",   desc: "按摩G點30秒。", duration: 30 },
       31: { title: "安全區",   desc: "女生躺著男上口交2分鐘", duration: 120 },
       32: { title: "甜蜜暴擊", desc: "幫男生尻+舔3分鐘", duration: 180 },
@@ -515,9 +512,9 @@
       35: { title: "秘密契約", desc: "舔男生睪丸+捏奶頭1分鐘。", duration: 60 },
       36: { title: "背德", desc: "從後面捏男生奶頭+尻槍1分鐘", duration: 60 },
       37: { title: "淪陷臣服", desc: "捏女生奶頭壓頭口交1分鐘", duration: 60 },
-      38: { title: "愛的承諾", desc: "捏女生奶頭舔私密處1分鐘。", duration: 60 },
+      38: { title: "愛的承諾", desc: "捏女生奶頭舔鮑魚1分鐘。", duration: 60 },
       39: { title: "欲求不滿",   desc: "在陰道口摩擦10下。", duration: 0 },
-      40: { title: "情慾流動", desc: "69姿勢2分鐘。", duration: 120 },
+      40: { title: "M 調教", desc: "男生跪姿女生從跨下幫男生尻槍1分鐘。", duration: 60 },
       41: { title: "決勝局", desc: "床上後入2分鐘(女生動)", duration: 120 },
       42: { title: "高潮前哨", desc: "背面騎乘位2分鐘。", duration: 120 },
       43: { title: "浪漫加溫", desc: "騎乘位2分鐘", duration: 120 },
@@ -527,10 +524,11 @@
       47: { title: "甜蜜密碼", desc: "床上後入2分鐘(男生動)。", duration: 120 },
       48: { title: "極致抽搐", desc: "女抖 M 後入3分鐘", duration: 180 },
       49: { title: "上位指導", desc: "騎乘位2分鐘。", duration: 120 },
-      50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精", duration: 300 }
+      50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精 ", duration: 300 }
     };
 
-    let tileTasks = defaultTasks;
+    let tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
+
 
     // 監聽 Firebase 雲端更新
     if (isFirebaseReady) {
