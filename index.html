@@ -519,8 +519,25 @@
       margin-top: 15px;
     }
 
-    .cancel-btn {
+   .cancel-btn {
       background: #bbb;
+    }
+
+    /* 🔄 重設按鈕樣式與底部按鈕排版優化 */
+    .reset-btn {
+      background: #ffa502;
+    }
+    .reset-btn:hover {
+      background: #ff7f50;
+    }
+    .edit-modal-footer {
+      display: flex;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .edit-modal-footer .modal-btn {
+      padding: 9px 0;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -612,6 +629,7 @@
       <div class="edit-modal-header" id="editModalTitle">編輯任務清單</div>
       <div class="edit-list" id="editListContainer"></div>
       <div class="edit-modal-footer">
+        <button class="modal-btn reset-btn" onclick="resetToDefaultTasks()">重設預設值 🔄</button>
         <button class="modal-btn cancel-btn" onclick="closeEditorModal()">取消</button>
         <button class="modal-btn" onclick="saveTasksFromEditor()">儲存並同步 💾</button>
       </div>
