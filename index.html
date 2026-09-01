@@ -22,7 +22,7 @@
       text-align: center;
       background: #fcd5e5;
       margin: 0;
-      padding: 15px 0 30px;
+      padding: 12px 0 30px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -31,22 +31,22 @@
       overflow-x: hidden;
     }
 
-    /* 頂部資訊列與模式切換 */
+    /* 頂部資訊列 */
     .top-bar {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 12px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     #game-info {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 900;
       color: #e63946;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 6px 18px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 5px 16px;
       border-radius: 20px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
@@ -55,8 +55,8 @@
       background: #ffffff;
       border: 2px solid #54a0ff;
       border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 13px;
+      padding: 4px 12px;
+      font-size: 12px;
       font-weight: bold;
       color: #2e86de;
       cursor: pointer;
@@ -75,6 +75,23 @@
       background: #ff6b81;
       color: #ffffff;
       border-color: #ff6b81;
+    }
+
+    .memo-badge {
+      background: #fff;
+      border: 2px solid #ffa502;
+      color: #e67e22;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+    .memo-badge:hover {
+      background: #ffa502;
+      color: #fff;
     }
 
     /* 棋盤舞台與緊貼按鈕 */
@@ -214,7 +231,7 @@
       pointer-events: auto;
     }
 
-    /* === 可愛歡迎與設定頁面樣式 === */
+    /* === 歡迎與設定彈窗 === */
     .welcome-modal {
       background: #ffffff;
       border-radius: 28px;
@@ -314,7 +331,7 @@
       line-height: 1.35;
     }
 
-    /* 骰子點數選擇按鈕群組 */
+    /* 骰子點數上限群組 */
     .dice-limit-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -356,7 +373,7 @@
       color: #fff;
     }
 
-    /* 任務彈窗樣式 */
+    /* 任務彈窗 */
     .task-modal {
       background: #ffffff;
       border-radius: 24px;
@@ -515,29 +532,122 @@
 
     .edit-modal-footer {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-top: 15px;
     }
 
-   .cancel-btn {
-      background: #bbb;
+    .edit-modal-footer .modal-btn {
+      padding: 9px 0;
+      font-size: 14px;
     }
 
-    /* 🔄 重設按鈕樣式與底部按鈕排版優化 */
+    .cancel-btn {
+      background: #bbb;
+    }
     .reset-btn {
       background: #ffa502;
     }
     .reset-btn:hover {
       background: #ff7f50;
     }
-    .edit-modal-footer {
+
+    /* === 📝 任務備忘錄彈窗 === */
+    .memo-modal {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 20px;
+      width: 90%;
+      max-width: 480px;
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+      border: 4px solid #ffa502;
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .modal-overlay.active .memo-modal {
+      transform: scale(1);
+    }
+
+    .memo-add-box {
+      background: #fff8eb;
+      border: 1.5px dashed #ffa502;
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+    .memo-add-box input, .memo-add-box textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+    .memo-add-box textarea {
+      height: 40px;
+      resize: vertical;
+    }
+
+    .memo-list {
+      flex: 1;
+      overflow-y: auto;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+    }
+
+    .memo-card-item {
+      background: #fffdf9;
+      border: 1.5px solid #ffeaa7;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .memo-card-title {
+      font-weight: bold;
+      color: #d35400;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .memo-card-desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.4;
+    }
+    .memo-card-actions {
       display: flex;
       gap: 8px;
-      margin-top: 15px;
+      justify-content: flex-end;
+      margin-top: 4px;
     }
-    .edit-modal-footer .modal-btn {
-      padding: 9px 0;
-      font-size: 14px;
+    .memo-action-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .memo-apply-btn {
+      background: #ffa502;
+      color: #fff;
+    }
+    .memo-del-btn {
+      background: #ff7675;
+      color: #fff;
     }
   </style>
 </head>
@@ -545,7 +655,8 @@
 
   <div class="top-bar">
     <div id="game-info">💖 紅方回合</div>
-    <div class="mode-badge public" id="modeBtn" onclick="openWelcomeModal()">🌐 公用雲端版 (最大 6 點)</div>
+    <div class="mode-badge public" id="modeBtn" onclick="openWelcomeModal()">🌐 雲端公用版 (最大 6 點)</div>
+    <div class="memo-badge" onclick="openMemoModal()">📝 任務備忘錄</div>
   </div>
 
   <div class="game-stage">
@@ -567,7 +678,6 @@
 
   <div class="modal-overlay active" id="welcomeModalOverlay">
     <div class="welcome-modal">
-      
       <div id="welcomeStep1">
         <div class="welcome-icon">💖✨</div>
         <div class="welcome-title">情侶飛行棋</div>
@@ -606,7 +716,6 @@
           <div class="dice-limit-btn" onclick="finishSetup(6)">6 點<span>經典滿速</span></div>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -615,11 +724,7 @@
       <div class="modal-tag" id="modalTag">第 1 格</div>
       <div class="modal-title" id="modalTitle">任務名稱</div>
       <div class="modal-desc" id="modalDesc">任務內容描述</div>
-      
-      <div class="modal-timer-badge" id="modalTimerBadge" style="display: none;">
-        ⏳ 準備中: 3s
-      </div>
-
+      <div class="modal-timer-badge" id="modalTimerBadge" style="display: none;">⏳ 準備中: 3s</div>
       <button class="modal-btn" id="modalConfirmBtn" onclick="closeTaskModal()">完成任務 ✨</button>
     </div>
   </div>
@@ -629,9 +734,31 @@
       <div class="edit-modal-header" id="editModalTitle">編輯任務清單</div>
       <div class="edit-list" id="editListContainer"></div>
       <div class="edit-modal-footer">
-        <button class="modal-btn reset-btn" onclick="resetToDefaultTasks()">重設預設值 🔄</button>
+        <button class="modal-btn reset-btn" onclick="resetToDefaultTasks()">重設預設 🔄</button>
         <button class="modal-btn cancel-btn" onclick="closeEditorModal()">取消</button>
-        <button class="modal-btn" onclick="saveTasksFromEditor()">儲存並同步 💾</button>
+        <button class="modal-btn" onclick="saveTasksFromEditor()">儲存任務 💾</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="memoModalOverlay">
+    <div class="memo-modal">
+      <div class="edit-modal-header" style="color:#d35400;">📝 任務備忘錄 (防洗白靈感庫)</div>
+      
+      <div class="memo-add-box">
+        <div style="font-size:13px; font-weight:bold; color:#d35400;">＋ 收藏一則新任務靈感</div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="newMemoTitle" placeholder="靈感標題 (例: 舌尖挑逗)" style="flex:2;">
+          <input type="number" id="newMemoDur" placeholder="秒數" style="flex:1;" min="0" value="0">
+        </div>
+        <textarea id="newMemoDesc" placeholder="任務詳細內容..."></textarea>
+        <button class="modal-btn" style="background:#ffa502; padding:6px 0; font-size:13px;" onclick="addMemoItem()">新增至備忘錄 📌</button>
+      </div>
+
+      <div class="memo-list" id="memoListContainer"></div>
+
+      <div class="edit-modal-footer" style="margin-top:10px;">
+        <button class="modal-btn cancel-btn" onclick="closeMemoModal()">關閉備忘錄</button>
       </div>
     </div>
   </div>
@@ -653,27 +780,28 @@
 
     let isFirebaseReady = false;
     let dbRef = null;
+    let dbMemoRef = null;
 
     try {
       firebase.initializeApp(firebaseConfig);
       dbRef = firebase.database().ref('shared_ludo_tasks');
+      dbMemoRef = firebase.database().ref('shared_ludo_memos');
       isFirebaseReady = true;
     } catch (e) {
       console.warn("Firebase 初始化錯誤", e);
     }
 
     let isCloudMode = true;
-    let maxDiceLimit = 6; // 骰子最大上限 (預設 6)
+    let maxDiceLimit = 6;
 
     // ==========================================
-    // 🔔 2. Web Audio API 音效
+    // 🔔 2. 音效
     // ==========================================
     let audioCtx = null;
     function playDingSound() {
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
@@ -688,7 +816,7 @@
     }
 
     // ==========================================
-    // 🎯 3. 最新 50 格任務資料
+    // 🎯 3. 官方預設 50 格任務資料
     // ==========================================
     const defaultTasks = {
       1:  { title: "耳畔喘息", desc: "吹對方耳朵並舔兩下。", duration: 0 },
@@ -743,24 +871,33 @@
       50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精 ", duration: 300 }
     };
 
-    let tileTasks = defaultTasks;
+    // 私人模式獨立資料
+    let privateTasks = JSON.parse(localStorage.getItem('couple_ludo_private_tasks')) || JSON.parse(JSON.stringify(defaultTasks));
+    // 公用模式獨立資料
+    let publicTasks = JSON.parse(JSON.stringify(defaultTasks));
 
-    // 監聽 Firebase 雲端更新（修正版：不隨意覆蓋雲端現有資料）
+    // 當前運行中的任務指標
+    let tileTasks = publicTasks;
+
+    // 監聽 Firebase 雲端公用更新
     if (isFirebaseReady) {
       dbRef.on('value', (snapshot) => {
         const cloudData = snapshot.val();
         if (cloudData) {
-          if (isCloudMode) tileTasks = cloudData;
+          publicTasks = cloudData;
         } else {
-          // 只有在雲端完全沒有任何資料時，才初始化上傳 defaultTasks
+          // 首次空資料初始化
           dbRef.set(defaultTasks);
-          tileTasks = defaultTasks;
+          publicTasks = JSON.parse(JSON.stringify(defaultTasks));
+        }
+        if (isCloudMode) {
+          tileTasks = publicTasks;
         }
       });
     }
 
     // ==========================================
-    // 🌟 4. 歡迎頁面與雙步驟選擇邏輯
+    // 🌟 4. 歡迎頁與模式選擇
     // ==========================================
     const welcomeModalOverlay = document.getElementById('welcomeModalOverlay');
     const welcomeStep1 = document.getElementById('welcomeStep1');
@@ -786,22 +923,19 @@
       welcomeModalOverlay.classList.remove('active');
 
       if (isCloudMode) {
-        modeBtn.innerText = `🌐 公用雲端版 (最大 ${maxDiceLimit} 點)`;
+        modeBtn.innerText = `🌐 雲端公用版 (最大 ${maxDiceLimit} 點)`;
         modeBtn.className = "mode-badge public";
-        if (isFirebaseReady) {
-          dbRef.once('value').then(snap => {
-            if (snap.val()) tileTasks = snap.val();
-          });
-        }
+        tileTasks = publicTasks;
       } else {
         modeBtn.innerText = `📱 本地私密版 (最大 ${maxDiceLimit} 點)`;
         modeBtn.className = "mode-badge private";
-        tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
+        privateTasks = JSON.parse(localStorage.getItem('couple_ludo_private_tasks')) || JSON.parse(JSON.stringify(defaultTasks));
+        tileTasks = privateTasks;
       }
     }
 
     // ==========================================
-    // 📝 5. 編輯與同步邏輯
+    // 📝 5. 任務編輯與獨立儲存（互不覆寫）
     // ==========================================
     const editModalOverlay = document.getElementById('editModalOverlay');
     const editModalTitle = document.getElementById('editModalTitle');
@@ -813,7 +947,8 @@
       currentEditType = type;
       const isOdd = (type === 'odd');
 
-      editModalTitle.innerText = isOdd ? "✏️ 紅方編輯 奇數格任務" : "✏️ 藍方編輯 偶數格任務";
+      const modeName = isCloudMode ? "【雲端公用版】" : "【本地私密版】";
+      editModalTitle.innerText = `${modeName} ${isOdd ? "紅方 奇數格" : "藍方 偶數格"}`;
       editModalBox.style.borderColor = isOdd ? "#ff7b90" : "#54a0ff";
 
       editListContainer.innerHTML = '';
@@ -864,20 +999,157 @@
         }
       }
 
-      localStorage.setItem('couple_ludo_tasks_50', JSON.stringify(tileTasks));
-
-      if (isFirebaseReady && isCloudMode) {
-        dbRef.set(tileTasks);
-        alert("✅ 已成功儲存並同步至雲端公用版本！");
+      // 嚴格分流儲存：絕不互相覆蓋
+      if (isCloudMode) {
+        publicTasks = tileTasks;
+        if (isFirebaseReady) {
+          dbRef.set(publicTasks);
+          alert("✅ 已同步至【雲端公用版】！(不會影響您的私人模式任務)");
+        }
       } else {
-        alert("✅ 已成功儲存至本機私密版！");
+        privateTasks = tileTasks;
+        localStorage.setItem('couple_ludo_private_tasks', JSON.stringify(privateTasks));
+        alert("✅ 已儲存至【本地私密版】！(不會影響公開雲端任務)");
       }
 
       closeEditorModal();
     }
 
+    function resetToDefaultTasks() {
+      const modeName = isCloudMode ? "雲端公用版" : "本地私密版";
+      const confirmReset = confirm(`確定要將【${modeName}】重設回官方預設任務嗎？`);
+      if (!confirmReset) return;
+
+      tileTasks = JSON.parse(JSON.stringify(defaultTasks));
+
+      if (isCloudMode) {
+        publicTasks = tileTasks;
+        if (isFirebaseReady) dbRef.set(defaultTasks);
+      } else {
+        privateTasks = tileTasks;
+        localStorage.setItem('couple_ludo_private_tasks', JSON.stringify(privateTasks));
+      }
+
+      openEditorModal(currentEditType);
+      alert(`✨ 已成功重設【${modeName}】為官方預設版本！`);
+    }
+
     // ==========================================
-    // ⏱️ 6. 倒數計時邏輯
+    // 📝 6. 雲端/私人 任務靈感備忘錄
+    // ==========================================
+    const memoModalOverlay = document.getElementById('memoModalOverlay');
+    const memoListContainer = document.getElementById('memoListContainer');
+
+    let memoItems = JSON.parse(localStorage.getItem('couple_ludo_memos')) || [
+      { id: 1, title: "深情舌吻", desc: "雙手扣住對方後腦勺熱吻 1 分鐘", duration: 60 },
+      { id: 2, title: "私密暗號", desc: "在對方耳邊輕聲說出三個最想做的羞恥指令", duration: 0 }
+    ];
+
+    if (isFirebaseReady) {
+      dbMemoRef.on('value', (snap) => {
+        const cloudMemos = snap.val();
+        if (cloudMemos && isCloudMode) {
+          memoItems = cloudMemos;
+        }
+      });
+    }
+
+    function openMemoModal() {
+      renderMemoList();
+      memoModalOverlay.classList.add('active');
+    }
+
+    function closeMemoModal() {
+      memoModalOverlay.classList.remove('active');
+    }
+
+    function renderMemoList() {
+      memoListContainer.innerHTML = '';
+      if (memoItems.length === 0) {
+        memoListContainer.innerHTML = '<div style="text-align:center; color:#999; padding:20px 0;">備忘錄空空如也，趕快新增一些私房點子吧！</div>';
+        return;
+      }
+
+      memoItems.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'memo-card-item';
+        card.innerHTML = `
+          <div class="memo-card-title">
+            <span>📌 ${item.title}</span>
+            <span style="font-size:12px; color:#888;">${item.duration > 0 ? `⏳ ${item.duration}s` : '不計時'}</span>
+          </div>
+          <div class="memo-card-desc">${item.desc}</div>
+          <div class="memo-card-actions">
+            <button class="memo-action-btn memo-apply-btn" onclick="applyMemoToGrid(${index})">填入棋盤格 ➔</button>
+            <button class="memo-action-btn memo-del-btn" onclick="deleteMemoItem(${index})">刪除</button>
+          </div>
+        `;
+        memoListContainer.appendChild(card);
+      });
+    }
+
+    function addMemoItem() {
+      const title = document.getElementById('newMemoTitle').value.trim();
+      const desc = document.getElementById('newMemoDesc').value.trim();
+      const dur = parseInt(document.getElementById('newMemoDur').value) || 0;
+
+      if (!title || !desc) {
+        alert("請填寫備忘任務的標題與內容喔！");
+        return;
+      }
+
+      memoItems.unshift({ id: Date.now(), title, desc, duration: dur });
+      saveMemos();
+
+      document.getElementById('newMemoTitle').value = '';
+      document.getElementById('newMemoDesc').value = '';
+      document.getElementById('newMemoDur').value = '0';
+
+      renderMemoList();
+      alert("📌 成功加入備忘錄！隨時不怕好點子遺失！");
+    }
+
+    function deleteMemoItem(idx) {
+      if (!confirm("確定要刪除這筆備忘靈感嗎？")) return;
+      memoItems.splice(idx, 1);
+      saveMemos();
+      renderMemoList();
+    }
+
+    function applyMemoToGrid(idx) {
+      const item = memoItems[idx];
+      const targetGrid = prompt(`請輸入要將【${item.title}】填入第幾格？ (1 ~ 50):`, "1");
+      const gridNum = parseInt(targetGrid);
+
+      if (isNaN(gridNum) || gridNum < 1 || gridNum > 50) {
+        alert("請輸入有效的格子編號 (1~50)！");
+        return;
+      }
+
+      tileTasks[gridNum] = {
+        title: item.title,
+        desc: item.desc,
+        duration: item.duration
+      };
+
+      if (isCloudMode) {
+        publicTasks = tileTasks;
+        if (isFirebaseReady) dbRef.set(publicTasks);
+      } else {
+        privateTasks = tileTasks;
+        localStorage.setItem('couple_ludo_private_tasks', JSON.stringify(privateTasks));
+      }
+
+      alert(`🎉 成功將備忘任務填入第 ${gridNum} 格！`);
+    }
+
+    function saveMemos() {
+      localStorage.setItem('couple_ludo_memos', JSON.stringify(memoItems));
+      if (isFirebaseReady) dbMemoRef.set(memoItems);
+    }
+
+    // ==========================================
+    // ⏱️ 7. 計時器邏輯
     // ==========================================
     let autoTimerInterval = null;
     const modalTimerBadge = document.getElementById('modalTimerBadge');
@@ -922,7 +1194,7 @@
     }
 
     // ==========================================
-    // 💖 7. 50 格雙愛心棋盤幾何與動畫
+    // 💖 8. 50格雙愛心棋盤
     // ==========================================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -1117,7 +1389,6 @@
       dicePatterns[val].forEach(idx => document.getElementById(`d${idx}`).style.visibility = 'visible');
     }
 
-    // 擲骰子 (依據 maxDiceLimit 隨機抽樣)
     function rollDice() {
       if (isAnimating) return;
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1128,7 +1399,6 @@
 
       let rollCount = 0;
       const rollInterval = setInterval(() => {
-        // 動畫中隨機跳動 1 ~ maxDiceLimit
         const randVal = Math.floor(Math.random() * maxDiceLimit) + 1;
         updateDiceFace(randVal);
         rollCount++;
@@ -1136,8 +1406,6 @@
         if (rollCount >= 10) {
           clearInterval(rollInterval);
           diceEl.classList.remove('rolling');
-          
-          // 最終擲出的點數嚴格限制在 1 ~ maxDiceLimit
           const finalDice = Math.floor(Math.random() * maxDiceLimit) + 1;
           updateDiceFace(finalDice);
           lastRolledDice = finalDice;
@@ -1198,4 +1466,3 @@
   </script>
 </body>
 </html>
-
