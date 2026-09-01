@@ -426,7 +426,7 @@
 
   <script>
     // ==========================================
-    // ☁️ 1. 你的 Firebase 專屬設定 (已自動填入)
+    // ☁️ 1. 你的 Firebase 專屬設定
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyAyfbvi0HCbNF95384gf3qLn1_CazaD3XM",
@@ -539,7 +539,6 @@
         if (cloudData && isCloudMode) {
           tileTasks = cloudData;
         } else if (!cloudData) {
-          // 若雲端為空，自動上傳預設任務
           dbRef.set(defaultTasks);
         }
       });
@@ -877,7 +876,7 @@
 
     function updateDiceFace(val) {
       for (let i = 0; i < 9; i++) document.getElementById(`d${i}`).style.visibility = 'hidden';
-      dicePatterns[val].forEach(idx => document.getElementById(`d${idx}`).style.visibility = 'visible';);
+      dicePatterns[val].forEach(idx => document.getElementById(`d${idx}`).style.visibility = 'visible');
     }
 
     function rollDice() {
@@ -952,6 +951,7 @@
       rollBtn.disabled = false;
     }
 
+    // 初始化介面
     updateDiceFace(1);
     drawBoard();
   </script>
