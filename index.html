@@ -1,20 +1,21 @@
-為你設計了一個**粉彩馬卡龍風格的可愛「歡迎起始頁（Welcome Modal）」**！
+為你加入「**自訂骰子最大點數**」的可愛設定流程！
 
 ---
 
-### 🎯 歡迎頁面亮點設計：
+### 🎯 主要更新重點：
 
-1. **可愛溫馨視覺**：
-* 帶有輕柔浮空動畫的 Q 版雙愛心圖示與粉彩毛玻璃背景。
-
-
-2. **直覺二選一卡片**：
-* 💖 **「📱 本地私密版」**：說明資料僅儲存在此手機/電腦，適合私密專屬遊玩。
-* 🌐 **「☁️ 雲端公用版」**：說明即時同步至 Firebase 雲端，任何裝置編輯所有人同步看得到。
+1. **雙步驟起始設定流程（Step 1 ➔ Step 2）**：
+* **第 1 步（選擇模式）**：選擇「📱 本地私密版」或「☁️ 雲端公用版」。
+* **第 2 步（骰子點數上限）**：彈出可愛的點數選擇按鈕（**1 點 ～ 6 點**），並提示「你的骰子最大可以骰到幾點呢？」。
 
 
-3. **靈活自由切換**：
-* 選擇模式後會平滑淡出歡迎頁並自動載入該模式的任務；若玩到一半想換模式，頂部的模式按鈕依然隨時可以切換或重新叫出歡迎選單。
+2. **依據選擇動態限制骰子**：
+* 玩家擲骰子時的隨機範圍會鎖定在 `1 ~ 最大點數` 之間。
+* 動畫滾動與最終停下的點數皆不會超過玩家設定的上限。
+
+
+3. **頂部狀態欄即時顯示**：
+* 頂部模式標籤會標註目前設定的上限（例如：`🌐 公用雲端版 (最大 3 點)`），點擊隨時可以重新設定模式與點數上限。
 
 
 
@@ -241,7 +242,7 @@
       pointer-events: auto;
     }
 
-    /* === 可愛歡迎起始頁面樣式 === */
+    /* === 可愛歡迎與設定頁面樣式 === */
     .welcome-modal {
       background: #ffffff;
       border-radius: 28px;
@@ -281,7 +282,7 @@
     .welcome-subtitle {
       font-size: 14px;
       color: #777;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       line-height: 1.4;
     }
 
@@ -339,6 +340,48 @@
       font-size: 12px;
       color: #666;
       line-height: 1.35;
+    }
+
+    /* 骰子點數選擇按鈕群組 */
+    .dice-limit-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .dice-limit-btn {
+      background: #fff0f3;
+      border: 2.5px solid #ff7b90;
+      border-radius: 16px;
+      padding: 14px 0;
+      font-size: 18px;
+      font-weight: 900;
+      color: #e63946;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dice-limit-btn span {
+      font-size: 12px;
+      font-weight: normal;
+      color: #888;
+    }
+
+    .dice-limit-btn:hover {
+      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+      color: white;
+      border-color: #ff758c;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(255, 117, 140, 0.35);
+    }
+    .dice-limit-btn:hover span {
+      color: #fff;
     }
 
     /* 任務彈窗樣式 */
@@ -513,7 +556,7 @@
 
   <div class="top-bar">
     <div id="game-info">💖 紅方回合</div>
-    <div class="mode-badge public" id="modeBtn" onclick="openWelcomeModal()">🌐 公用雲端版 (點擊切換)</div>
+    <div class="mode-badge public" id="modeBtn" onclick="openWelcomeModal()">🌐 公用雲端版 (最大 6 點)</div>
   </div>
 
   <div class="game-stage">
@@ -535,27 +578,46 @@
 
   <div class="modal-overlay active" id="welcomeModalOverlay">
     <div class="welcome-modal">
-      <div class="welcome-icon">💖✨</div>
-      <div class="welcome-title">情侶飛行棋</div>
-      <div class="welcome-subtitle">請選擇今天想遊玩的模式～</div>
+      
+      <div id="welcomeStep1">
+        <div class="welcome-icon">💖✨</div>
+        <div class="welcome-title">情侶飛行棋</div>
+        <div class="welcome-subtitle">請選擇今天想遊玩的模式～</div>
 
-      <div class="mode-cards-container">
-        <div class="mode-card mode-card-private" onclick="choosePlayMode('private')">
-          <div class="card-icon">📱</div>
-          <div>
-            <div class="card-title">本地私密版</div>
-            <div class="card-desc">這裡沒有第三者！寫下你最渴望的變態指令，今晚誰輸了就得乖乖任由擺佈...</div>
+        <div class="mode-cards-container">
+          <div class="mode-card mode-card-private" onclick="goToStep2('private')">
+            <div class="card-icon">📱</div>
+            <div>
+              <div class="card-title">本地私密版</div>
+              <div class="card-desc">這裡沒有第三者！寫下你最渴望的變態指令，今晚誰輸了就得乖乖任由擺佈...🥵</div>
+            </div>
           </div>
-        </div>
 
-        <div class="mode-card mode-card-public" onclick="choosePlayMode('public')">
-          <div class="card-icon">☁️</div>
-          <div>
-            <div class="card-title">雲端公用版</div>
-            <div class="card-desc">探索大家私藏的羞恥懲罰，同步連線更新，今晚一起把另一半徹底調教到求饒～😈</div>
+          <div class="mode-card mode-card-public" onclick="goToStep2('public')">
+            <div class="card-icon">☁️</div>
+            <div>
+              <div class="card-title">雲端公用版</div>
+              <div class="card-desc">匯集所有情侶的淫蕩玩法！同步連線更新，今晚一起把另一半徹底調教到求饒～😈</div>
+            </div>
           </div>
         </div>
       </div>
+
+      <div id="welcomeStep2" style="display: none;">
+        <div class="welcome-icon">🎲✨</div>
+        <div class="welcome-title">設定骰子上限</div>
+        <div class="welcome-subtitle">你的骰子最大可以骰到幾點呢？</div>
+
+        <div class="dice-limit-grid">
+          <div class="dice-limit-btn" onclick="finishSetup(1)">1 點<span>慢慢前進</span></div>
+          <div class="dice-limit-btn" onclick="finishSetup(2)">2 點<span>細細品味</span></div>
+          <div class="dice-limit-btn" onclick="finishSetup(3)">3 點<span>微醺節奏</span></div>
+          <div class="dice-limit-btn" onclick="finishSetup(4)">4 點<span>甜蜜互動</span></div>
+          <div class="dice-limit-btn" onclick="finishSetup(5)">5 點<span>熱情加速</span></div>
+          <div class="dice-limit-btn" onclick="finishSetup(6)">6 點<span>經典滿速</span></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -610,7 +672,8 @@
       console.warn("Firebase 初始化錯誤", e);
     }
 
-    let isCloudMode = true; // 當前模式
+    let isCloudMode = true;
+    let maxDiceLimit = 6; // 骰子最大上限 (預設 6)
 
     // ==========================================
     // 🔔 2. Web Audio API 音效
@@ -635,7 +698,7 @@
     }
 
     // ==========================================
-    // 🎯 3. 預設 50 格任務資料
+    // 🎯 3. 最新 50 格任務資料
     // ==========================================
     const defaultTasks = {
       1:  { title: "耳畔喘息", desc: "吹對方耳朵並舔兩下。", duration: 0 },
@@ -706,21 +769,33 @@
     }
 
     // ==========================================
-    // 🌟 4. 歡迎頁面與模式切換邏輯
+    // 🌟 4. 歡迎頁面與雙步驟選擇邏輯
     // ==========================================
     const welcomeModalOverlay = document.getElementById('welcomeModalOverlay');
+    const welcomeStep1 = document.getElementById('welcomeStep1');
+    const welcomeStep2 = document.getElementById('welcomeStep2');
     const modeBtn = document.getElementById('modeBtn');
+    let selectedModeTemp = 'public';
 
     function openWelcomeModal() {
+      welcomeStep1.style.display = 'block';
+      welcomeStep2.style.display = 'none';
       welcomeModalOverlay.classList.add('active');
     }
 
-    function choosePlayMode(mode) {
+    function goToStep2(mode) {
+      selectedModeTemp = mode;
+      welcomeStep1.style.display = 'none';
+      welcomeStep2.style.display = 'block';
+    }
+
+    function finishSetup(limit) {
+      maxDiceLimit = limit;
+      isCloudMode = (selectedModeTemp === 'public');
       welcomeModalOverlay.classList.remove('active');
-      isCloudMode = (mode === 'public');
 
       if (isCloudMode) {
-        modeBtn.innerText = "🌐 公用雲端版 (已連線)";
+        modeBtn.innerText = `🌐 公用雲端版 (最大 ${maxDiceLimit} 點)`;
         modeBtn.className = "mode-badge public";
         if (isFirebaseReady) {
           dbRef.once('value').then(snap => {
@@ -728,7 +803,7 @@
           });
         }
       } else {
-        modeBtn.innerText = "📱 本地私密版 (本機儲存)";
+        modeBtn.innerText = `📱 本地私密版 (最大 ${maxDiceLimit} 點)`;
         modeBtn.className = "mode-badge private";
         tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
       }
@@ -1051,6 +1126,7 @@
       dicePatterns[val].forEach(idx => document.getElementById(`d${idx}`).style.visibility = 'visible');
     }
 
+    // 擲骰子 (依據 maxDiceLimit 隨機抽樣)
     function rollDice() {
       if (isAnimating) return;
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1061,14 +1137,17 @@
 
       let rollCount = 0;
       const rollInterval = setInterval(() => {
-        const randVal = Math.floor(Math.random() * 6) + 1;
+        // 動畫中隨機跳動 1 ~ maxDiceLimit
+        const randVal = Math.floor(Math.random() * maxDiceLimit) + 1;
         updateDiceFace(randVal);
         rollCount++;
 
         if (rollCount >= 10) {
           clearInterval(rollInterval);
           diceEl.classList.remove('rolling');
-          const finalDice = Math.floor(Math.random() * 6) + 1;
+          
+          // 最終擲出的點數嚴格限制在 1 ~ maxDiceLimit
+          const finalDice = Math.floor(Math.random() * maxDiceLimit) + 1;
           updateDiceFace(finalDice);
           lastRolledDice = finalDice;
           processTurn(finalDice);
