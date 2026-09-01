@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>情侶飛行棋</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="情侶飛行棋">
+
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#fcd5e5">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body {
+      font-family: "PingFang SC", "Microsoft JhengHei", sans-serif;
+      text-align: center;
+      background: #fcd5e5;
+      margin: 0;
+      padding: 15px 0 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 頂部資訊列 */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    #game-info {
+      font-size: 22px;
+      font-weight: 900;
+      color: #e63946;
+      background: rgba(255, 255, 255, 0.75);
+      padding: 6px 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    /* 棋盤舞台與緊貼按鈕 */
+    .game-stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    canvas {
+      background: #fce1ed;
+      border: 4px solid #ffffff;
+      border-radius: 32px;
+      box-shadow: 0 10px 25px rgba(220, 100, 150, 0.25);
+    }
+
+    .side-btn {
+      padding: 16px 10px;
+      font-size: 14px;
+      font-weight: bold;
+      border: 3px solid #ffffff;
+      border-radius: 18px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      letter-spacing: 2px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .side-btn-red {
+      background: linear-gradient(180deg, #ff6b81, #ff4757);
+    }
+
+    .side-btn-blue {
+      background: linear-gradient(180deg, #54a0ff, #2e86de);
+    }
+
+    .side-btn:hover {
+      transform: scale(1.06);
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dice-container {
+      perspective: 600px;
+      width: 60px;
+      height: 60px;
+    }
+
+    .dice {
+      width: 60px;
+      height: 60px;
+      background: #ffffff;
+      border: 3px solid #ff7b90;
+      border-radius: 14px;
+      box-shadow: 0 6px 0 #e56277, 0 10px 15px rgba(0,0,0,0.15);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 6px;
+      transition: transform 0.1s ease;
+    }
+
+    .rolling {
+      animation: dice-roll 0.6s linear infinite;
+    }
+
+    @keyframes dice-roll {
+      0%   { transform: rotateX(0deg) rotateY(0deg) scale(1.1); }
+      25%  { transform: rotateX(180deg) rotateY(90deg) scale(1.1); }
+      50%  { transform: rotateX(360deg) rotateY(180deg) scale(1.1); }
+      75%  { transform: rotateX(180deg) rotateY(270deg) scale(1.1); }
+      100% { transform: rotateX(0deg) rotateY(360deg) scale(1.1); }
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      background: #ff5277;
+      border-radius: 50%;
+      align-self: center;
+      justify-self: center;
+      visibility: hidden;
+    }
+
+    button#rollBtn {
+      padding: 12px 36px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+      color: white;
+      box-shadow: 0 5px 15px rgba(255, 117, 140, 0.4);
+      transition: all 0.2s;
+    }
+
+    button#rollBtn:disabled {
+      background: #ccc;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    button#rollBtn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px rgba(255, 117, 140, 0.6);
+    }
+
+    /* 彈窗遮罩與外觀 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .task-modal {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 24px 28px;
+      width: 85%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      border: 4px solid #ff7b90;
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-overlay.active .task-modal {
+      transform: scale(1);
+    }
+
+    .modal-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      border-radius: 12px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .modal-desc {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-timer-badge {
+      background: #fff0f3;
+      border: 2px dashed #ff758c;
+      border-radius: 16px;
+      padding: 8px 12px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ff4757;
+      margin-bottom: 16px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    .modal-btn {
+      width: 100%;
+      padding: 11px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 20px;
+      background: #ff758c;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .modal-btn:hover {
+      background: #ff5277;
+    }
+
+    /* 任務編輯視窗 */
+    .edit-modal {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 20px;
+      width: 90%;
+      max-width: 480px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+      border: 4px solid #ff7b90;
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-overlay.active .edit-modal {
+      transform: scale(1);
+    }
+
+    .edit-modal-header {
+      font-size: 20px;
+      font-weight: 900;
+      color: #333;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .edit-list {
+      flex: 1;
+      overflow-y: auto;
+      text-align: left;
+      padding-right: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .edit-item {
+      background: #fff5f7;
+      border: 1.5px solid #ffd1dc;
+      padding: 10px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .edit-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      color: #444;
+      font-size: 14px;
+    }
+
+    .edit-item input, .edit-item textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .edit-item input:focus, .edit-item textarea:focus {
+      border-color: #ff758c;
+    }
+
+    .edit-item textarea {
+      resize: vertical;
+      height: 48px;
+    }
+
+    .duration-input {
+      width: 65px !important;
+      text-align: center;
+    }
+
+    .edit-modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .cancel-btn {
+      background: #bbb;
+    }
+    .cancel-btn:hover {
+      background: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div id="game-info">💖 紅方回合</div>
+  </div>
+
+  <div class="game-stage">
+    <button class="side-btn side-btn-red" onclick="openEditorModal('odd')">✏️ 紅方編輯 奇數格</button>
+    <canvas id="gameCanvas" width="560" height="580"></canvas>
+    <button class="side-btn side-btn-blue" onclick="openEditorModal('even')">✏️ 藍方編輯 偶數格</button>
+  </div>
+
+  <div class="controls">
+    <div class="dice-container">
+      <div class="dice" id="diceElement">
+        <div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div>
+        <div class="dot" id="d3"></div><div class="dot" id="d4"></div><div class="dot" id="d5"></div>
+        <div class="dot" id="d6"></div><div class="dot" id="d7"></div><div class="dot" id="d8"></div>
+      </div>
+    </div>
+    <button id="rollBtn" onclick="rollDice()">擲骰子 🎲</button>
+  </div>
+
+  <div class="modal-overlay" id="taskModalOverlay">
+    <div class="task-modal">
+      <div class="modal-tag" id="modalTag">第 1 格</div>
+      <div class="modal-title" id="modalTitle">任務名稱</div>
+      <div class="modal-desc" id="modalDesc">任務內容描述</div>
+      
+      <div class="modal-timer-badge" id="modalTimerBadge" style="display: none;">
+        ⏳ 準備中: 3s
+      </div>
+
+      <button class="modal-btn" id="modalConfirmBtn" onclick="closeTaskModal()">完成任務 ✨</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="editModalOverlay">
+    <div class="edit-modal" id="editModalBox">
+      <div class="edit-modal-header" id="editModalTitle">編輯任務清單 (1~50格)</div>
+      <div class="edit-list" id="editListContainer"></div>
+      <div class="edit-modal-footer">
+        <button class="modal-btn cancel-btn" onclick="closeEditorModal()">取消</button>
+        <button class="modal-btn" onclick="saveTasksFromEditor()">儲存任務 💾</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 🔔 Web Audio API 合成短「叮」音效
+    // ==========================================
+    let audioCtx = null;
+    function playDingSound() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(987.77, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.8);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.8);
+      } catch (e) {
+        console.warn("音訊受限", e);
+      }
+    }
+
+    // ==========================================
+    // 🎯 預設任務清單 (完整 1~50 格) 備忘錄:塞肛塞、
+    // ==========================================
+    const defaultTasks = {
+      1:  { title: "耳畔喘息", desc: "吹對方耳朵並舔兩下。", duration: 0 },
+      2:  { title: "意亂情迷",   desc: "接吻1分鐘。", duration: 60 },
+      3:  { title: "初熟",   desc: "舌頭交纏20秒。", duration: 20 },
+      4:  { title: "放學私會",   desc: "輕撫對方胸部並向下到摸到私密處20秒", duration: 20 },
+      5:  { title: "蜜桃窒息",   desc: "捏對方奶頭20秒。", duration: 20 },
+      6:  { title: "春心",   desc: "摸對方雞雞/揉痘痘 輕撫20秒。", duration: 20 },
+      7:  { title: "甜蜜抱抱", desc: "抱抱並互相摸對方私密處１分鐘。", duration: 60 },
+      8:  { title: "欲拒還迎", desc: "女生拉男生手去輕壓痘痘30秒。", duration: 30 },
+      9:  { title: "大冒險",   desc: "接吻1分鐘。", duration: 60 },
+      10: { title: "絕對領域",   desc: "背對男生把女生褲子脫下來露出騷B。", duration: 0 },
+      11: { title: "雄雞昂首", desc: "把男生褲子脫下來 女生用親吻龜頭。", duration: 0 },
+      12: { title: "波濤洶湧", desc: "把女生衣服脫下來 並捏轉一下奶頭", duration: 0 },
+      13: { title: "藍色賀爾蒙", desc: "把男生衣服脫下來 並捏轉一下奶頭。", duration: 0 },
+      14: { title: "窒息抽插", desc: "躺著倒反口交1分鐘。", duration: 60 },
+      15: { title: "騷貨誘惑", desc: "隨意玩弄騷穴1分鐘", duration: 60 },
+      16: { title: "莫比烏斯", desc: "69姿勢2分鐘", duration: 120 },
+      17: { title: "愛液", desc: "幫對方含住蛋蛋或陰蒂20秒 舌頭打轉。", duration: 20 },
+      18: { title: "偷情", desc: "閉上眼睛任對方舔1分鐘。", duration: 60 },
+      19: { title: "蜜桃窒息", desc: "女生坐到男生臉上給人家舔1分鐘。", duration: 60 },
+      20: { title: "許願池", desc: "去廁所拍騷照drop給對方", duration: 0 },
+      21: { title: "淫水",   desc: "用內褲抵住按摩棒1分鐘 手不能碰 ", duration: 60 },
+      22: { title: "高潮淪陷",   desc: "手淫對方1分鐘", duration: 60 },
+      23: { title: "愛撫", desc: "幫男生撸並舔奶頭30秒", duration: 30 },
+      24: { title: "貪求",   desc: "幫男生撸到射精邊緣。", duration: 0 },
+      25: { title: "心有靈犀", desc: "幫男生口交30秒 並比耶。", duration: 30 },
+      26: { title: "越界", desc: "深喉嚨口交10次。", duration: 0 },
+      27: { title: "愛的告白", desc: "猛烈口交30秒 忍住沒射獎勵內射。", duration: 30 },
+      28: { title: "忍得住嗎", desc: "幫男生撸1分鐘。", duration: 60 },
+      29: { title: "騷鮑欠舔", desc: "幫女生舔鮑魚1分鐘。", duration: 60 },
+      30: { title: "淪陷愛意",   desc: "按摩G點30秒。", duration: 30 },
+      31: { title: "安全區",   desc: "女生躺著男上口交2分鐘", duration: 120 },
+      32: { title: "甜蜜暴擊", desc: "幫男生尻+舔3分鐘", duration: 180 },
+      33: { title: "高潮慾火",   desc: "女生自慰同時幫男生口1分鐘", duration: 60 },
+      34: { title: "私密愛撫", desc: "舔睪丸1分鐘。", duration: 60 },
+      35: { title: "秘密契約", desc: "舔男生睪丸+捏奶頭1分鐘。", duration: 60 },
+      36: { title: "背德", desc: "從後面捏男生奶頭+尻槍1分鐘", duration: 60 },
+      37: { title: "淪陷臣服", desc: "捏女生奶頭壓頭口交1分鐘", duration: 60 },
+      38: { title: "愛的承諾", desc: "捏女生奶頭舔鮑魚1分鐘。", duration: 60 },
+      39: { title: "欲求不滿",   desc: "在陰道口摩擦10下。", duration: 0 },
+      40: { title: "M 調教", desc: "男生跪姿女生從跨下幫男生尻槍1分鐘。", duration: 60 },
+      41: { title: "決勝局", desc: "床上後入2分鐘(女生動)", duration: 120 },
+      42: { title: "高潮前哨", desc: "背面騎乘位2分鐘。", duration: 120 },
+      43: { title: "浪漫加溫", desc: "騎乘位2分鐘", duration: 120 },
+      44: { title: "秘密課後", desc: "站姿後入2分鐘", duration: 120 },
+      45: { title: "狂抽猛送", desc: "火車便當10下。", duration: 0 },
+      46: { title: "倒數心跳", desc: "正常位抽插3分鐘。", duration: 180 },
+      47: { title: "甜蜜密碼", desc: "床上後入2分鐘(男生動)。", duration: 120 },
+      48: { title: "極致抽搐", desc: "女抖 M 後入3分鐘", duration: 180 },
+      49: { title: "上位指導", desc: "騎乘位2分鐘。", duration: 120 },
+      50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精 ", duration: 300 }
+    };
+
+    let tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
+
+    // ==========================================
+    // 📝 任務編輯視窗邏輯
+    // ==========================================
+    const editModalOverlay = document.getElementById('editModalOverlay');
+    const editModalTitle = document.getElementById('editModalTitle');
+    const editListContainer = document.getElementById('editListContainer');
+    const editModalBox = document.getElementById('editModalBox');
+    let currentEditType = 'odd';
+
+    function openEditorModal(type) {
+      currentEditType = type;
+      const isOdd = (type === 'odd');
+
+      editModalTitle.innerText = isOdd ? "✏️ 紅方編輯 奇數格任務" : "✏️ 藍方編輯 偶數格任務";
+      editModalBox.style.borderColor = isOdd ? "#ff7b90" : "#54a0ff";
+
+      editListContainer.innerHTML = '';
+
+      for (let i = 1; i <= 50; i++) {
+        if ((isOdd && i % 2 === 1) || (!isOdd && i % 2 === 0)) {
+          const task = tileTasks[i] || { title: "", desc: "", duration: 0 };
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'edit-item';
+          itemDiv.innerHTML = `
+            <div class="edit-item-header">
+              <span>第 ${i} 格</span>
+              <div>
+                倒數: 
+                <input type="number" class="duration-input" id="edit-dur-${i}" min="0" value="${task.duration || 0}"> 秒 (0=不計時)
+              </div>
+            </div>
+            <input type="text" id="edit-title-${i}" placeholder="任務標題" value="${task.title}">
+            <textarea id="edit-desc-${i}" placeholder="任務詳細內容">${task.desc}</textarea>
+          `;
+          editListContainer.appendChild(itemDiv);
+        }
+      }
+
+      editModalOverlay.classList.add('active');
+    }
+
+    function closeEditorModal() {
+      editModalOverlay.classList.remove('active');
+    }
+
+    function saveTasksFromEditor() {
+      const isOdd = (currentEditType === 'odd');
+
+      for (let i = 1; i <= 50; i++) {
+        if ((isOdd && i % 2 === 1) || (!isOdd && i % 2 === 0)) {
+          const titleInput = document.getElementById(`edit-title-${i}`);
+          const descInput = document.getElementById(`edit-desc-${i}`);
+          const durInput = document.getElementById(`edit-dur-${i}`);
+
+          if (titleInput && descInput && durInput) {
+            tileTasks[i] = {
+              title: titleInput.value.trim() || `第 ${i} 格`,
+              desc: descInput.value.trim() || "自由互動時間！",
+              duration: parseInt(durInput.value) || 0
+            };
+          }
+        }
+      }
+
+      localStorage.setItem('couple_ludo_tasks_50', JSON.stringify(tileTasks));
+      alert("✅ 50 格任務已成功儲存！");
+      closeEditorModal();
+    }
+
+    // ==========================================
+    // ⏱️ 任務計時器邏輯
+    // ==========================================
+    let autoTimerInterval = null;
+    const modalTimerBadge = document.getElementById('modalTimerBadge');
+
+    function startAutoTaskTimer(taskDuration) {
+      clearInterval(autoTimerInterval);
+
+      if (!taskDuration || taskDuration <= 0) {
+        modalTimerBadge.style.display = 'none';
+        return;
+      }
+
+      modalTimerBadge.style.display = 'block';
+      let prepCount = 3;
+      modalTimerBadge.innerText = `⏳ 準備倒數: ${prepCount}s`;
+
+      autoTimerInterval = setInterval(() => {
+        prepCount--;
+        if (prepCount > 0) {
+          modalTimerBadge.innerText = `⏳ 準備倒數: ${prepCount}s`;
+        } else {
+          clearInterval(autoTimerInterval);
+          
+          let remainTime = taskDuration;
+          modalTimerBadge.innerText = `🔥 進行中: ${remainTime}s`;
+
+          autoTimerInterval = setInterval(() => {
+            remainTime--;
+            if (remainTime > 0) {
+              modalTimerBadge.innerText = `🔥 進行中: ${remainTime}s`;
+            } else {
+              clearInterval(autoTimerInterval);
+              modalTimerBadge.innerText = `🎉 時間到！任務完成！`;
+              playDingSound();
+            }
+          }, 1000);
+        }
+      }, 1000);
+    }
+
+    function stopTaskTimer() {
+      clearInterval(autoTimerInterval);
+    }
+
+    // ==========================================
+    // 💖 50 格雙愛心精準幾何排列 (無重疊)
+    // ==========================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const infoText = document.getElementById('game-info');
+    const rollBtn = document.getElementById('rollBtn');
+    const diceEl = document.getElementById('diceElement');
+
+    const modalOverlay = document.getElementById('taskModalOverlay');
+    const modalTag = document.getElementById('modalTag');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+
+    const TILE_THEMES = [
+      { bg: '#f1889b', border: '#423738', shadow: '#c46274' },
+      { bg: '#86d8c9', border: '#33403d', shadow: '#5bb8a7' },
+      { bg: '#f9db74', border: '#423c2d', shadow: '#d6b64d' },
+      { bg: '#85befa', border: '#2d3b48', shadow: '#599cdb' }
+    ];
+
+    // 重新佈局 50 格不重疊座標 (畫布 560 x 580)
+    const heartCoords = [
+      // === 1. 外圈大愛心 (1 ~ 28 格) ===
+      { x: 280, y: 110, type: 'start' }, // 1 (起點 ◀◀)
+      { x: 326, y: 72 },   // 2
+      { x: 376, y: 50 },   // 3
+      { x: 428, y: 52 },   // 4
+      { x: 476, y: 80 },   // 5
+      { x: 508, y: 126 },  // 6 (右上弧頂)
+      { x: 518, y: 178 },  // 7
+      { x: 510, y: 232 },  // 8
+      { x: 486, y: 284 },  // 9
+      { x: 452, y: 334 },  // 10
+      { x: 412, y: 380 },  // 11
+      { x: 370, y: 422 },  // 12
+      { x: 326, y: 462 },  // 13
+      { x: 280, y: 518 },  // 14 (大愛心底端尖點)
+      { x: 234, y: 462 },  // 15
+      { x: 190, y: 422 },  // 16
+      { x: 148, y: 380 },  // 17
+      { x: 108, y: 334 },  // 18
+      { x: 74,  y: 284 },  // 19
+      { x: 50,  y: 232 },  // 20
+      { x: 42,  y: 178 },  // 21
+      { x: 52,  y: 126 },  // 22 (左上弧頂)
+      { x: 84,  y: 80 },   // 23
+      { x: 132, y: 52 },   // 24
+      { x: 184, y: 50 },   // 25
+      { x: 234, y: 72 },   // 26
+      { x: 254, y: 128 },  // 27
+      { x: 280, y: 156 },  // 28
+
+      // === 2. 過渡引導 (29 ~ 30 格) ===
+      { x: 322, y: 142 },  // 29
+      { x: 360, y: 140 },  // 30
+
+      // === 3. 內圈小愛心 (31 ~ 49 格) ===
+      { x: 400, y: 162 },  // 31 (小愛心右弧頂)
+      { x: 424, y: 202 },  // 32
+      { x: 426, y: 248 },  // 33
+      { x: 408, y: 290 },  // 34
+      { x: 378, y: 330 },  // 35
+      { x: 344, y: 366 },  // 36
+      { x: 308, y: 398 },  // 37
+      { x: 280, y: 432 },  // 38 (小愛心底端尖點)
+      { x: 252, y: 398 },  // 39
+      { x: 216, y: 366 },  // 40
+      { x: 182, y: 330 },  // 41
+      { x: 152, y: 290 },  // 42
+      { x: 134, y: 248 },  // 43
+      { x: 136, y: 202 },  // 44
+      { x: 160, y: 162 },  // 45 (小愛心左弧頂)
+      { x: 200, y: 140 },  // 46
+      { x: 238, y: 142 },  // 47
+      { x: 280, y: 198 },  // 48 (小愛心上方內凹處)
+      { x: 280, y: 242 },  // 49
+
+      // === 4. 正中心終點 (第 50 格) ===
+      { x: 280, y: 292, type: 'end' } // 50 (愛心正中心終點 ⚑)
+    ];
+
+    const track = heartCoords.map((coord, idx) => {
+      return {
+        num: idx + 1,
+        x: coord.x,
+        y: coord.y,
+        type: coord.type || 'normal',
+        theme: TILE_THEMES[idx % 4]
+      };
+    });
+
+    const players = [
+      { name: "紅方", color: "#ff4757", pos: 0, renderX: track[0].x, renderY: track[0].y },
+      { name: "藍方", color: "#2e86de", pos: 0, renderX: track[0].x, renderY: track[0].y }
+    ];
+
+    let currentTurn = 0;
+    let isAnimating = false;
+    let lastRolledDice = 1;
+
+    function drawRoundedRect(x, y, w, h, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+
+    function drawHeart(x, y, size, color) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x, y + size * 0.3);
+      ctx.bezierCurveTo(x, y, x - size, y, x - size, y + size * 0.4);
+      ctx.bezierCurveTo(x - size, y + size * 0.8, x, y + size * 1.1, x, y + size * 1.3);
+      ctx.bezierCurveTo(x, y + size * 1.1, x + size, y + size * 0.8, x + size, y + size * 0.4);
+      ctx.bezierCurveTo(x + size, y, x, y, x, y + size * 0.3);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const size = 36; // 50 格舒適尺寸
+
+      // 繪製棋盤格子
+      track.forEach((tile) => {
+        const x = tile.x - size / 2;
+        const y = tile.y - size / 2;
+
+        ctx.fillStyle = tile.theme.shadow;
+        drawRoundedRect(x, y + 3, size, size, 9);
+        ctx.fill();
+
+        ctx.fillStyle = tile.theme.bg;
+        drawRoundedRect(x, y, size, size, 9);
+        ctx.fill();
+
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 2;
+        drawRoundedRect(x, y, size, size + 3, 9);
+        ctx.stroke();
+
+        if (tile.type === 'start') {
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 15px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("◀◀", tile.x, tile.y + 1);
+        } else if (tile.type === 'end') {
+          ctx.fillStyle = "#333333";
+          ctx.font = "bold 20px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("⚑", tile.x, tile.y);
+        } else {
+          drawHeart(tile.x, tile.y - 9, 7, "rgba(255, 255, 255, 0.35)");
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 14px 'Arial Black', Impact, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(tile.num, tile.x, tile.y + 2);
+        }
+      });
+
+      // 繪製玩家棋子
+      players.forEach((p, idx) => {
+        let offset = (players[0].pos === players[1].pos && !isAnimating) 
+                     ? (idx === 0 ? -7 : 7) : 0;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(p.renderX + offset, p.renderY + offset, 10, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(p.renderX + offset, p.renderY + offset, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+
+    function animateMovement(player, targetIndices, onComplete) {
+      if (targetIndices.length === 0) {
+        onComplete();
+        return;
+      }
+
+      let leg = 0;
+      let startTime = null;
+      const duration = 200;
+
+      let startX = player.renderX;
+      let startY = player.renderY;
+      let destX = track[targetIndices[0]].x;
+      let destY = track[targetIndices[0]].y;
+
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const t = Math.min((timestamp - startTime) / duration, 1);
+        const bounce = Math.sin(t * Math.PI) * 12;
+
+        player.renderX = startX + (destX - startX) * t;
+        player.renderY = startY + (destY - startY) * t - bounce;
+
+        drawBoard();
+
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          leg++;
+          if (leg < targetIndices.length) {
+            startX = destX;
+            startY = destY;
+            destX = track[targetIndices[leg]].x;
+            destY = track[targetIndices[leg]].y;
+            startTime = timestamp;
+            requestAnimationFrame(step);
+          } else {
+            player.renderX = destX;
+            player.renderY = destY;
+            drawBoard();
+            onComplete();
+          }
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    const dicePatterns = {
+      1: [4],
+      2: [2, 6],
+      3: [2, 4, 6],
+      4: [0, 2, 6, 8],
+      5: [0, 2, 4, 6, 8],
+      6: [0, 2, 3, 5, 6, 8]
+    };
+
+    function updateDiceFace(val) {
+      for (let i = 0; i < 9; i++) {
+        document.getElementById(`d${i}`).style.visibility = 'hidden';
+      }
+      dicePatterns[val].forEach(idx => {
+        document.getElementById(`d${idx}`).style.visibility = 'visible';
+      });
+    }
+
+    function rollDice() {
+      if (isAnimating) return;
+
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      isAnimating = true;
+      rollBtn.disabled = true;
+      diceEl.classList.add('rolling');
+
+      let rollCount = 0;
+      const rollInterval = setInterval(() => {
+        const randVal = Math.floor(Math.random() * 6) + 1;
+        updateDiceFace(randVal);
+        rollCount++;
+
+        if (rollCount >= 10) {
+          clearInterval(rollInterval);
+          diceEl.classList.remove('rolling');
+
+          const finalDice = Math.floor(Math.random() * 6) + 1;
+          updateDiceFace(finalDice);
+          lastRolledDice = finalDice;
+
+          processTurn(finalDice);
+        }
+      }, 60);
+    }
+
+    function processTurn(dice) {
+      const player = players[currentTurn];
+      const maxIdx = track.length - 1;
+      
+      const targetPos = Math.min(player.pos + dice, maxIdx);
+      const waypoints = [];
+      for (let p = player.pos + 1; p <= targetPos; p++) {
+        waypoints.push(p);
+      }
+
+      player.pos = targetPos;
+
+      animateMovement(player, waypoints, () => {
+        showTaskModal(player, player.pos);
+      });
+    }
+
+    function showTaskModal(player, posIdx) {
+      const tileNum = posIdx + 1;
+      const task = tileTasks[tileNum] || { title: `第 ${tileNum} 格`, desc: "自由互動時間！", duration: 0 };
+
+      modalTag.innerText = `${player.name} 抵達 第 ${tileNum} 格`;
+      modalTag.style.background = player.color;
+      modalTitle.innerText = task.title;
+      modalDesc.innerText = task.desc;
+
+      modalOverlay.classList.add('active');
+
+      startAutoTaskTimer(task.duration);
+    }
+
+    function closeTaskModal() {
+      stopTaskTimer();
+      modalOverlay.classList.remove('active');
+
+      const maxIdx = track.length - 1;
+      const player = players[currentTurn];
+
+      if (player.pos === maxIdx) {
+        infoText.innerText = `👑 恭喜 ${player.name} 抵達 50 格終點獲勝！`;
+        infoText.style.color = player.color;
+        rollBtn.disabled = true;
+        isAnimating = false;
+        return;
+      }
+
+      currentTurn = 1 - currentTurn;
+      infoText.innerText = `💖 輪到 ${players[currentTurn].name} (上回合擲出 ${lastRolledDice} 點)`;
+      infoText.style.color = players[currentTurn].color;
+      
+      isAnimating = false;
+      rollBtn.disabled = false;
+    }
+
+    // 初始化
+    updateDiceFace(1);
+    drawBoard();
+  </script>
+</body>
+</html>
