@@ -1015,7 +1015,33 @@
       closeEditorModal();
     }
 
-    function resetToDefaultTasks() {
+    // ==========================================
+    // 🔄 重設預設任務（公用版需管理員密碼 5269）
+    // ==========================================
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function resetToDefaultTasks() {
+      // 1. 若當前是「雲端公用版」，要求輸入管理員密碼
+      if (isCloudMode) {
+        const inputPwd = prompt("⚠️【管理員驗證】\n重設公用版會影響所有玩家的任務！\n請輸入管理員重設密碼：");
+        if (inputPwd === null) return; // 點擊取消
+
+        const inputHash = await sha256(inputPwd.trim());
+        // 5269 的 SHA-256 雜湊指紋（原始碼中不包含明文 5269）
+        const correctHash = "752c00fae0078eb13e0078864a75369bbcbff8a5be7156942ad32057d2a58b09";
+
+        if (inputHash !== correctHash) {
+          alert("❌ 密碼錯誤！您沒有權限重設雲端公用版本。");
+          return;
+        }
+      }
+
+      // 2. 本地私密版或密碼驗證通過後的二次確認
       const modeName = isCloudMode ? "雲端公用版" : "本地私密版";
       const confirmReset = confirm(`確定要將【${modeName}】重設回官方預設任務嗎？`);
       if (!confirmReset) return;
@@ -1033,7 +1059,6 @@
       openEditorModal(currentEditType);
       alert(`✨ 已成功重設【${modeName}】為官方預設版本！`);
     }
-
     // ==========================================
     // 📝 6. 雲端/私人 任務靈感備忘錄
     // ==========================================
