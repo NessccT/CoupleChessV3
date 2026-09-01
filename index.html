@@ -727,15 +727,16 @@
 
     let tileTasks = defaultTasks;
 
-    // 監聽 Firebase 雲端更新
+    // 監聽 Firebase 雲端更新（修正版：不隨意覆蓋雲端現有資料）
     if (isFirebaseReady) {
-      dbRef.set(defaultTasks);
-      tileTasks = defaultTasks;
-
       dbRef.on('value', (snapshot) => {
         const cloudData = snapshot.val();
-        if (cloudData && isCloudMode) {
-          tileTasks = cloudData;
+        if (cloudData) {
+          if (isCloudMode) tileTasks = cloudData;
+        } else {
+          // 只有在雲端完全沒有任何資料時，才初始化上傳 defaultTasks
+          dbRef.set(defaultTasks);
+          tileTasks = defaultTasks;
         }
       });
     }
