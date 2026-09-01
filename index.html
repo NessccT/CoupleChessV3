@@ -1,3 +1,30 @@
+為你設計了一個**粉彩馬卡龍風格的可愛「歡迎起始頁（Welcome Modal）」**！
+
+---
+
+### 🎯 歡迎頁面亮點設計：
+
+1. **可愛溫馨視覺**：
+* 帶有輕柔浮空動畫的 Q 版雙愛心圖示與粉彩毛玻璃背景。
+
+
+2. **直覺二選一卡片**：
+* 💖 **「📱 本地私密版」**：說明資料僅儲存在此手機/電腦，適合私密專屬遊玩。
+* 🌐 **「☁️ 雲端公用版」**：說明即時同步至 Firebase 雲端，任何裝置編輯所有人同步看得到。
+
+
+3. **靈活自由切換**：
+* 選擇模式後會平滑淡出歡迎頁並自動載入該模式的任務；若玩到一半想換模式，頂部的模式按鈕依然隨時可以切換或重新叫出歡迎選單。
+
+
+
+---
+
+### 完整 HTML 程式碼
+
+請直接複製以下完整代碼至你的 GitHub `index.html` 覆蓋儲存：
+
+```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -55,7 +82,7 @@
       background: #ffffff;
       border: 2px solid #54a0ff;
       border-radius: 20px;
-      padding: 4px 12px;
+      padding: 4px 14px;
       font-size: 13px;
       font-weight: bold;
       color: #2e86de;
@@ -69,6 +96,12 @@
     .mode-badge.public {
       background: #2e86de;
       color: #ffffff;
+      border-color: #2e86de;
+    }
+    .mode-badge.private {
+      background: #ff6b81;
+      color: #ffffff;
+      border-color: #ff6b81;
     }
 
     /* 棋盤舞台與緊貼按鈕 */
@@ -185,15 +218,15 @@
       transform: none !important;
     }
 
-    /* 彈窗樣式 */
+    /* === 彈窗遮罩基礎 === */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(3px);
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -208,6 +241,107 @@
       pointer-events: auto;
     }
 
+    /* === 可愛歡迎起始頁面樣式 === */
+    .welcome-modal {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 28px 24px;
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(220, 80, 130, 0.3);
+      border: 4px solid #ff7b90;
+      transform: scale(0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-overlay.active .welcome-modal {
+      transform: scale(1);
+    }
+
+    .welcome-icon {
+      font-size: 46px;
+      display: inline-block;
+      animation: float-heart 2s ease-in-out infinite;
+      margin-bottom: 6px;
+    }
+
+    @keyframes float-heart {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.08); }
+    }
+
+    .welcome-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #e63946;
+      margin-bottom: 6px;
+    }
+
+    .welcome-subtitle {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+
+    .mode-cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mode-card {
+      border-radius: 18px;
+      padding: 14px 16px;
+      cursor: pointer;
+      text-align: left;
+      border: 2.5px solid transparent;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mode-card-private {
+      background: #fff0f3;
+      border-color: #ffd1dc;
+    }
+    .mode-card-private:hover {
+      border-color: #ff4757;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 71, 87, 0.2);
+    }
+
+    .mode-card-public {
+      background: #f0f7ff;
+      border-color: #cfe2ff;
+    }
+    .mode-card-public:hover {
+      border-color: #2e86de;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(46, 134, 222, 0.2);
+    }
+
+    .card-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 2px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.35;
+    }
+
+    /* 任務彈窗樣式 */
     .task-modal {
       background: #ffffff;
       border-radius: 24px;
@@ -379,7 +513,7 @@
 
   <div class="top-bar">
     <div id="game-info">💖 紅方回合</div>
-    <div class="mode-badge public" id="modeBtn" onclick="toggleMode()">🌐 公用雲端版 (已連線)</div>
+    <div class="mode-badge public" id="modeBtn" onclick="openWelcomeModal()">🌐 公用雲端版 (點擊切換)</div>
   </div>
 
   <div class="game-stage">
@@ -397,6 +531,32 @@
       </div>
     </div>
     <button id="rollBtn" onclick="rollDice()">擲骰子 🎲</button>
+  </div>
+
+  <div class="modal-overlay active" id="welcomeModalOverlay">
+    <div class="welcome-modal">
+      <div class="welcome-icon">💖✨</div>
+      <div class="welcome-title">情侶飛行棋</div>
+      <div class="welcome-subtitle">請選擇今天想遊玩的模式～</div>
+
+      <div class="mode-cards-container">
+        <div class="mode-card mode-card-private" onclick="choosePlayMode('private')">
+          <div class="card-icon">📱</div>
+          <div>
+            <div class="card-title">本地私密版</div>
+            <div class="card-desc">任務僅儲存在此裝置，保有兩人專屬小秘密。</div>
+          </div>
+        </div>
+
+        <div class="mode-card mode-card-public" onclick="choosePlayMode('public')">
+          <div class="card-icon">☁️</div>
+          <div>
+            <div class="card-title">雲端公用版</div>
+            <div class="card-desc">即時連線 Firebase，任何裝置編輯所有人同步更新！</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="modal-overlay" id="taskModalOverlay">
@@ -426,7 +586,7 @@
 
   <script>
     // ==========================================
-    // ☁️ 1. 你的 Firebase 專屬設定
+    // ☁️ 1. Firebase 設定
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyAyfbvi0HCbNF95384gf3qLn1_CazaD3XM",
@@ -450,7 +610,7 @@
       console.warn("Firebase 初始化錯誤", e);
     }
 
-    let isCloudMode = true;
+    let isCloudMode = true; // 當前模式
 
     // ==========================================
     // 🔔 2. Web Audio API 音效
@@ -474,7 +634,10 @@
       } catch (e) {}
     }
 
- const defaultTasks = {
+    // ==========================================
+    // 🎯 3. 預設 50 格任務資料
+    // ==========================================
+    const defaultTasks = {
       1:  { title: "耳畔喘息", desc: "吹對方耳朵並舔兩下。", duration: 0 },
       2:  { title: "意亂情迷",   desc: "接吻1分鐘。", duration: 60 },
       3:  { title: "初熟",   desc: "舌頭交纏20秒。", duration: 20 },
@@ -527,12 +690,11 @@
       50: { title: "終點旗幟 ⚑", desc: "🎉 抵達終點！贏家指定最後姿勢/射在哪裡，5分鐘內衝刺射精 ", duration: 300 }
     };
 
-    let tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
+    let tileTasks = defaultTasks;
 
-
-    // 監聽 Firebase 雲端更新，並在載入時推送最新設定
+    // 監聽 Firebase 雲端更新
     if (isFirebaseReady) {
-      dbRef.set(defaultTasks); // 👈 關鍵：強制用最新 defaultTasks 覆蓋掉雲端的舊資料
+      dbRef.set(defaultTasks);
       tileTasks = defaultTasks;
 
       dbRef.on('value', (snapshot) => {
@@ -543,26 +705,37 @@
       });
     }
 
-    function toggleMode() {
-      isCloudMode = !isCloudMode;
-      const btn = document.getElementById('modeBtn');
+    // ==========================================
+    // 🌟 4. 歡迎頁面與模式切換邏輯
+    // ==========================================
+    const welcomeModalOverlay = document.getElementById('welcomeModalOverlay');
+    const modeBtn = document.getElementById('modeBtn');
+
+    function openWelcomeModal() {
+      welcomeModalOverlay.classList.add('active');
+    }
+
+    function choosePlayMode(mode) {
+      welcomeModalOverlay.classList.remove('active');
+      isCloudMode = (mode === 'public');
+
       if (isCloudMode) {
-        btn.innerText = "🌐 公用雲端版 (已連線)";
-        btn.classList.add('public');
+        modeBtn.innerText = "🌐 公用雲端版 (已連線)";
+        modeBtn.className = "mode-badge public";
         if (isFirebaseReady) {
           dbRef.once('value').then(snap => {
             if (snap.val()) tileTasks = snap.val();
           });
         }
       } else {
-        btn.innerText = "📱 本地私密版";
-        btn.classList.remove('public');
+        modeBtn.innerText = "📱 本地私密版 (本機儲存)";
+        modeBtn.className = "mode-badge private";
         tileTasks = JSON.parse(localStorage.getItem('couple_ludo_tasks_50')) || defaultTasks;
       }
     }
 
     // ==========================================
-    // 📝 4. 編輯與同步邏輯
+    // 📝 5. 編輯與同步邏輯
     // ==========================================
     const editModalOverlay = document.getElementById('editModalOverlay');
     const editModalTitle = document.getElementById('editModalTitle');
@@ -631,14 +804,14 @@
         dbRef.set(tileTasks);
         alert("✅ 已成功儲存並同步至雲端公用版本！");
       } else {
-        alert("✅ 已成功儲存至本機！");
+        alert("✅ 已成功儲存至本機私密版！");
       }
 
       closeEditorModal();
     }
 
     // ==========================================
-    // ⏱️ 5. 倒數計時邏輯
+    // ⏱️ 6. 倒數計時邏輯
     // ==========================================
     let autoTimerInterval = null;
     const modalTimerBadge = document.getElementById('modalTimerBadge');
@@ -683,7 +856,7 @@
     }
 
     // ==========================================
-    // 💖 6. 50 格雙愛心棋盤幾何與動畫
+    // 💖 7. 50 格雙愛心棋盤幾何與動畫
     // ==========================================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -950,9 +1123,10 @@
       rollBtn.disabled = false;
     }
 
-    // 初始化介面
     updateDiceFace(1);
     drawBoard();
   </script>
 </body>
 </html>
+
+```
